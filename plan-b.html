@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#f2f5fb">
+  <meta name="description" content="依頼者の情報を外部AIに預けない。JurisLocalは、法律事務所の業務に合わせたローカルAI環境と案件ワークスペースを構築します。">
+  <title>JurisLocal | そのAIは、事務所から出ない。法律事務所のためのローカルAI</title>
+  <!-- 案B「ガラスの箱」: 既存LPのスタイルを土台に、下の <style> で上書きしています -->
+  <style>
+:root {
+  color-scheme: light;
+  --paper: #f6f9ff;
+  --surface: #ffffff;
+  --raised: #eef3fc;
+  --ink: #172c4c;
+  --secondary: #506078;
+  --muted: #66758a;
+  --hairline: rgba(23, 44, 76, .12);
+  --hairline-strong: rgba(23, 44, 76, .2);
+  --accent: #315edb;
+  --accent-soft: #e9f0ff;
+  --local: #315edb;
+  --local-soft: #e9f0ff;
+  --sans: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --content: 1220px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 88px; background: var(--paper); }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.8; letter-spacing: 0; line-break: strict; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+.wrap { width: min(var(--content), calc(100% - 48px)); margin-inline: auto; }
+.mono { font-family: var(--mono); }
+.muted { color: var(--muted); }
+:focus-visible { outline: 3px solid rgba(49, 94, 219, .4); outline-offset: 3px; }
+
+.site-header { position: sticky; z-index: 20; top: 0; background: rgba(255, 255, 255, .96); }
+.nav { width: min(1280px, calc(100% - 48px)); min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-inline: auto; padding: 12px 0; border-bottom: 1px solid var(--hairline); }
+.brand { display: inline-flex; align-items: center; gap: 10px; min-width: 0; white-space: nowrap; }
+.brand-mark { width: 10px; height: 16px; display: inline-block; border-radius: 2px; background: var(--accent); }
+.brand-name { font-size: 17px; font-weight: 600; letter-spacing: -.02em; }
+.brand-by { margin-left: 2px; color: var(--muted); font-size: 12px; }
+.nav-links { display: flex; align-items: center; justify-content: center; gap: clamp(16px, 2.2vw, 28px); }
+.nav-links a { color: var(--secondary); font-size: 13px; transition: color .16s ease; }
+.nav-links a:hover, .nav-links a:focus-visible { color: var(--ink); }
+.nav-action, .button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid var(--hairline-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 500; transition: color .16s ease, background-color .16s ease, border-color .16s ease; }
+.nav-action { min-height: 40px; padding-inline: 16px; border-color: var(--accent); background: var(--accent); color: #fff; white-space: nowrap; }
+.nav-action:hover, .hero-actions .button:first-child:hover { border-color: #254cb7; background: #254cb7; }
+.button:hover, .button-quiet:hover { border-color: var(--hairline-strong); background: var(--raised); }
+.arrow { display: inline-block; font-size: 16px; line-height: 1; }
+.menu-toggle { display: none; width: 40px; height: 40px; align-items: center; justify-content: center; border: 1px solid var(--hairline-strong); border-radius: 8px; background: var(--surface); color: var(--ink); }
+
+.hero { min-height: 640px; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; gap: clamp(40px, 5vw, 68px); padding-block: 72px 80px; }
+.hero-copy { position: relative; z-index: 1; }
+.hero h1 { max-width: 600px; margin: 0; font-size: clamp(44px, 5vw, 66px); font-weight: 500; line-height: 1.28; letter-spacing: -.035em; }
+.hero h1 .headline-line { display: block; white-space: nowrap; }
+.hero h1 .headline-accent { color: var(--accent); }
+.hero-kicker { margin: 0 0 20px; color: var(--accent); font-size: 14px; font-weight: 500; }
+.hero-text { max-width: 460px; margin: 24px 0 0; color: var(--secondary); font-size: 17px; line-height: 1.9; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.hero-actions .button:first-child { border-color: var(--accent); background: var(--accent); color: #fff; font-weight: 600; }
+.hero-actions .button.button-quiet { background: transparent; }
+.diagram-icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.hero-route { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--hairline); }
+.hero-route-node { min-width: 0; display: flex; align-items: center; gap: 8px; color: var(--secondary); font-size: 12px; white-space: nowrap; }
+.hero-route-node .diagram-icon { width: 20px; height: 20px; color: var(--accent); }
+.hero-route-arrow { color: var(--muted); font-size: 16px; }
+.hero-art { min-width: 0; position: relative; }
+.poc-shell { position: relative; overflow: hidden; border: 1px solid var(--hairline-strong); border-radius: 12px; background: var(--surface); box-shadow: 0 8px 24px rgba(23, 44, 76, .07); transform: perspective(1400px) rotateX(2deg); transform-origin: center bottom; }
+.poc-topbar { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--hairline); color: var(--secondary); font-size: 12px; }
+.poc-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.poc-tag { padding: 2px 8px; border: 1px solid var(--hairline); border-radius: 6px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+#poc-panel { display: grid; aspect-ratio: 2450 / 1832; place-items: center; overflow: hidden; background: #f5f6f7; }
+.poc-image { width: 100%; height: 100%; display: block; object-fit: contain; background: #f5f6f7; }
+.screen-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.screen-tab { min-height: 36px; padding-inline: 12px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); color: var(--secondary); font-size: 12px; cursor: pointer; transition: background-color .16s ease, color .16s ease, border-color .16s ease; }
+.screen-tab:hover { border-color: var(--hairline-strong); background: var(--raised); color: var(--ink); }
+.screen-tab[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
+.screen-caption { flex-basis: 100%; margin: 4px 0 0; color: var(--secondary); font-size: 13px; line-height: 1.7; }
+.screen-caption strong { color: var(--ink); font-weight: 600; }
+.poc-notice { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+.signal-strip { border-block: 1px solid var(--hairline); background: #ffffff; }
+.signal-inner { min-height: 80px; display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; }
+.signal { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px 12px; color: var(--secondary); font-size: 13px; }
+.signal + .signal { border-left: 1px solid var(--hairline); }
+.signal-index { color: var(--accent); font: 12px var(--mono); }
+.section { padding-block: 96px; }
+.section-head { display: grid; grid-template-columns: minmax(180px, .55fr) minmax(0, 1.45fr); gap: 40px; align-items: start; margin-bottom: 40px; }
+.section-label { padding-top: 6px; color: var(--muted); font-size: 13px; }
+.section h2 { margin: 0; font-size: clamp(34px, 3.8vw, 48px); font-weight: 500; line-height: 1.38; letter-spacing: -.03em; text-wrap: balance; }
+.section-intro { max-width: 680px; margin: 16px 0 0; color: var(--secondary); font-size: 15px; line-height: 1.9; }
+
+.task-grid { display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--hairline-strong); }
+.key-card { display: grid; grid-template-columns: 160px minmax(180px, .8fr) minmax(0, 1.4fr); align-items: center; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--hairline); }
+.card-meta { margin-bottom: 8px; color: var(--muted); font-size: 13px; }
+.key-card h3 { margin: 0; font-size: 18px; font-weight: 500; line-height: 1.55; }
+.key-card p { margin: 0; color: var(--secondary); font-size: 14px; line-height: 1.85; }
+
+.approach { background: var(--raised); border-block: 1px solid var(--hairline); }
+.principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.principle { min-height: 0; padding: 20px 16px 0 0; border-top: 2px solid var(--hairline-strong); }
+.principle-icon { width: 26px; height: 26px; display: block; margin-bottom: 16px; fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.principle h3 { margin: 0; font-size: 17px; font-weight: 500; line-height: 1.5; }
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 40px; overflow: hidden; border: 1px solid var(--hairline-strong); border-radius: 12px; background: var(--surface); }
+.flow-step { min-height: 150px; padding: 20px; }
+.flow-step + .flow-step { border-left: 1px solid var(--hairline); }
+.flow-step .num { color: var(--muted); font: 12px var(--mono); }
+.flow-icon { width: 24px; height: 24px; display: block; margin-top: 12px; fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.flow-step h3 { margin: 12px 0 0; font-size: 15px; font-weight: 500; line-height: 1.55; }
+
+.deployment { padding-block: 96px; background: var(--raised); border-block: 1px solid var(--hairline); }
+.deployment-layout { display: grid; grid-template-columns: minmax(0, .95fr) minmax(340px, 1.05fr); gap: clamp(40px, 6vw, 80px); align-items: center; }
+.eyebrow { color: var(--muted); font-size: 13px; }
+.deployment h2 { margin: 16px 0; font-size: clamp(34px, 3.8vw, 46px); font-weight: 500; line-height: 1.38; letter-spacing: -.03em; }
+.deployment-copy { color: var(--secondary); font-size: 15px; line-height: 1.9; }
+.deployment-copy strong { color: var(--ink); font-weight: 600; }
+.deployment-steps { position: relative; overflow: hidden; border: 1px solid var(--hairline-strong); border-radius: 12px; background: var(--surface); }
+.deployment-steps::before { position: absolute; top: 52px; bottom: 24px; left: 35px; width: 1px; background: var(--hairline-strong); content: ""; }
+.deployment-head { padding: 16px 20px; border-bottom: 1px solid var(--hairline); color: var(--ink); font-size: 14px; font-weight: 500; }
+.deployment-step { display: grid; grid-template-columns: 48px 1fr; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--hairline); }
+.deployment-step:last-child { border-bottom: 0; }
+.deployment-step-label { position: relative; z-index: 1; width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--hairline-strong); border-radius: 50%; background: var(--surface); color: var(--accent); font: 11px var(--mono); }
+.deployment-step h3 { margin: 0 0 4px; color: var(--ink); font-size: 14px; font-weight: 500; }
+.deployment-step p { margin: 0; color: var(--secondary); font-size: 13px; line-height: 1.75; }
+
+.risk-section { background: #ffffff; border-block: 1px solid var(--hairline); }
+.risk-layout { display: block; }
+.risk-copy { max-width: 720px; margin-bottom: 40px; }
+.risk-layout h2 { margin: 12px 0 16px; font-size: clamp(34px, 3.8vw, 48px); font-weight: 500; line-height: 1.4; letter-spacing: -.03em; text-wrap: balance; }
+.risk-layout h2 span { color: var(--accent); }
+.risk-intro { margin: 0; color: var(--secondary); font-size: 15px; line-height: 1.9; }
+.risk-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.risk-card { padding: 24px; border: 1px solid var(--hairline-strong); border-left: 4px solid var(--hairline-strong); border-radius: 10px; background: var(--surface); }
+.risk-card.is-warning { border-left-color: #bd6051; background: #fffcfb; }
+.risk-card.is-local { border-left-color: var(--accent); background: #f8faff; }
+.risk-card-label { color: var(--muted); font-size: 13px; }
+.risk-card h3 { margin: 8px 0; font-size: 19px; font-weight: 500; line-height: 1.5; text-wrap: balance; }
+.risk-card.is-warning h3 { color: #ab5145; }
+.risk-card.is-local h3 { color: var(--accent); }
+.risk-card p { margin: 0; color: var(--secondary); font-size: 13px; line-height: 1.85; }
+.boundary-illustration { width: 100%; height: auto; display: block; margin: 8px 0; aspect-ratio: 5 / 3; object-fit: contain; }
+.risk-source { grid-column: 1 / -1; margin: 4px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.risk-source a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+.faq-grid { display: grid; grid-template-columns: .7fr 1.3fr; gap: 64px; }
+.faq-grid .section-label { margin-bottom: 12px; }
+.faq-grid h2 { max-width: 360px; margin: 0; font-size: 36px; font-weight: 500; line-height: 1.4; letter-spacing: -.03em; }
+.faq-list { border-top: 1px solid var(--hairline-strong); }
+details.faq { border-bottom: 1px solid var(--hairline); }
+details.faq summary { min-height: 64px; position: relative; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 0; color: var(--ink); font-size: 15px; cursor: pointer; list-style: none; }
+details.faq summary::-webkit-details-marker { display: none; }
+details.faq summary::after { color: var(--muted); content: "+"; font: 18px var(--mono); }
+details.faq[open] summary::after { color: var(--accent); content: "−"; }
+.faq-answer { max-width: 680px; margin: 0 28px 20px 0; color: var(--secondary); font-size: 14px; line-height: 1.85; }
+.faq-answer strong { color: var(--ink); font-weight: 600; }
+
+.consult { padding-block: 80px; border-top: 1px solid var(--hairline); }
+.consult-panel { display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 40px 44px; border: 1px solid var(--hairline-strong); border-radius: 12px; background: var(--surface); }
+.consult-copy { max-width: 680px; }
+.consult h2 { margin: 12px 0 8px; font-size: clamp(30px, 3.6vw, 42px); font-weight: 500; line-height: 1.4; letter-spacing: -.03em; }
+.consult p { margin: 0; color: var(--secondary); font-size: 14px; line-height: 1.85; }
+.consult-action { flex: none; }
+.consult-action .button { border-color: var(--ink); background: var(--ink); color: #fff; }
+.consult-action .button:hover { border-color: #274163; background: #274163; }
+.footer { padding: 24px 0 32px; border-top: 1px solid var(--hairline); color: var(--muted); font-size: 12px; }
+.footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.footer-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-size: 14px; font-weight: 500; }
+.footer-brand .brand-mark { width: 8px; height: 12px; }
+.footer-note { color: var(--muted); font-size: 12px; }
+
+@media (max-width: 980px) {
+  .hero { min-height: auto; grid-template-columns: 1fr; gap: 48px; padding-block: 72px 80px; }
+  .hero-copy { max-width: 720px; }
+  .hero-art { width: min(760px, 100%); margin-inline: auto; }
+  .section-head { grid-template-columns: 1fr; gap: 12px; }
+  .section-head .section-label { padding-top: 0; }
+  .deployment-layout { grid-template-columns: 1fr; gap: 32px; }
+  .deployment-copy { max-width: 680px; }
+  .risk-layout { grid-template-columns: 1fr; gap: 32px; }
+  .faq-grid { grid-template-columns: 1fr; gap: 28px; }
+  .faq-grid h2 { max-width: 640px; }
+}
+@media (max-width: 700px) {
+  html { scroll-padding-top: 72px; }
+  .wrap { width: min(calc(100% - 32px), var(--content)); }
+  .nav { width: calc(100% - 32px); min-height: 64px; gap: 12px; padding-block: 10px; }
+  .brand { gap: 8px; }
+  .brand-name { font-size: 16px; }
+  .brand-by { font-size: 11px; }
+  .menu-toggle { display: inline-flex; margin-left: auto; flex: none; }
+  .nav-links { position: absolute; top: calc(100% + 4px); left: 16px; right: 16px; display: none; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 16px; border: 1px solid var(--hairline-strong); border-radius: 10px; background: var(--surface); box-shadow: 0 8px 24px rgba(23, 44, 76, .08); }
+  .nav-links.is-open { display: flex; }
+  .nav-links a { padding: 12px 0; font-size: 14px; }
+  .nav-links a + a { border-top: 1px solid var(--hairline); }
+  .nav-action { min-height: 38px; padding-inline: 12px; font-size: 12px; }
+  .hero { gap: 36px; padding-block: 56px 64px; }
+  .hero h1 { font-size: clamp(30px, 8.3vw, 40px); line-height: 1.3; }
+  .hero-text { margin-top: 20px; font-size: 15px; }
+  .hero-actions { gap: 8px; margin-top: 24px; }
+  .hero-actions .button { min-height: 42px; padding-inline: 12px; font-size: 13px; }
+  .hero-route { gap: 4px; margin-top: 24px; padding-top: 16px; }
+  .hero-route-node { align-items: flex-start; flex-direction: column; gap: 4px; font-size: 11px; }
+  .hero-route-node .diagram-icon { width: 18px; height: 18px; }
+  .hero-route-arrow { align-self: center; font-size: 14px; }
+  .poc-shell { transform: perspective(1200px) rotateX(1.5deg); border-radius: 10px; }
+  .poc-topbar { min-height: 40px; padding-inline: 12px; }
+  .screen-tabs { gap: 6px; }
+  .screen-tab { min-height: 36px; padding-inline: 10px; font-size: 11px; }
+  .signal-inner { grid-template-columns: 1fr; padding-block: 8px; }
+  .signal { justify-content: flex-start; padding: 10px 0; font-size: 13px; }
+  .signal + .signal { border-left: 0; border-top: 1px solid var(--hairline); }
+  .section { padding-block: 72px; }
+  .section-head { margin-bottom: 28px; }
+  .section h2 { font-size: clamp(30px, 8vw, 38px); }
+  .section-intro { margin-top: 12px; font-size: 14px; }
+  .key-card { grid-template-columns: 1fr; gap: 8px; padding-block: 20px; }
+  .key-card h3 { font-size: 17px; }
+  .key-card p { font-size: 14px; }
+  .principles { grid-template-columns: 1fr; gap: 20px; }
+  .principle { padding: 16px 0 0; }
+  .principle-icon { margin-bottom: 10px; }
+  .flow { grid-template-columns: 1fr; margin-top: 32px; }
+  .flow-step { min-height: 0; display: grid; grid-template-columns: 28px 32px 1fr; align-items: center; gap: 8px 12px; padding: 16px 20px; }
+  .flow-step + .flow-step { border-top: 1px solid var(--hairline); border-left: 0; }
+  .flow-icon { margin: 0; }
+  .flow-step h3 { margin: 0; }
+  .deployment { padding-block: 72px; }
+  .deployment-layout { gap: 24px; }
+  .deployment h2 { font-size: 32px; }
+  .deployment-steps::before { top: 52px; left: 31px; bottom: 20px; }
+  .deployment-step { grid-template-columns: 28px 1fr; gap: 12px; padding: 14px 16px; }
+  .deployment-step-label { width: 28px; height: 28px; }
+  .risk-card { padding: 20px; }
+  .risk-card h3 { font-size: 18px; }
+  .route-map-outside { grid-template-columns: minmax(0, 1fr) 20px minmax(0, .9fr); gap: 5px; }
+  .route-office { padding: 8px; }
+  .route-node { gap: 5px; padding-inline: 5px; font-size: 11px; }
+  .route-node .diagram-icon { width: 15px; height: 15px; }
+  .route-scope { font-size: 10px; }
+  .route-office-flow { gap: 5px; }
+  .faq-grid { gap: 24px; }
+  .faq-grid h2 { font-size: 32px; }
+  details.faq summary { min-height: 60px; font-size: 14px; }
+  .faq-answer { font-size: 13px; }
+  .consult { padding-block: 56px; }
+  .consult-panel { align-items: flex-start; flex-direction: column; gap: 24px; padding: 28px 24px; }
+  .consult h2 { font-size: 30px; }
+  .consult p { font-size: 13px; }
+  .footer-inner { align-items: flex-start; flex-direction: column; gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+
+.hero-small { margin: 16px 0 0; color: var(--muted); font-size: 12px; }
+.hero-illustration { min-width: 0; margin: 0; padding: 24px 0 20px; border: 1px solid #d9e4f6; border-radius: 24px; background: #eef4ff; }
+.hero-illustration img { width: 100%; height: auto; display: block; }
+.scene-heading { display: flex; align-items: center; justify-content: center; gap: 8px; color: #536a8d; font-size: 12px; }
+.scene-dot { width: 6px; height: 6px; border-radius: 50%; background: #4d7fd9; }
+.hero-illustration figcaption { display: flex; justify-content: center; align-items: center; gap: 16px; color: #45618c; font-size: 12px; }
+.demo-section { padding-block: 24px 96px; }
+.demo-layout { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); align-items: center; gap: 48px; padding: 44px; border: 1px solid #dde6f3; border-radius: 20px; background: #fff; }
+.demo-copy h2 { margin: 16px 0; font-size: clamp(28px, 3vw, 36px); line-height: 1.4; letter-spacing: -.025em; font-weight: 500; }
+.demo-copy > p { color: var(--secondary); font-size: 15px; }
+.demo-button { border-color: var(--accent); background: var(--accent); color: #fff; }
+.demo-button:hover { border-color: #254cb7; background: #254cb7; }
+.demo-hints { display: grid; gap: 8px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--hairline); color: var(--secondary); font-size: 13px; }
+.demo-copy > .demo-note { margin-bottom: 0; color: var(--muted); font-size: 12px; }
+.demo-preview { min-width: 0; }
+.preview-link { position: relative; display: block; width: 100%; height: 100%; }
+.preview-action { position: absolute; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 16px; padding: 8px 12px; border: 1px solid #c3d1ee; border-radius: 8px; background: #fff; color: var(--accent); font-size: 12px; box-shadow: 0 4px 12px rgba(23,44,76,.08); }
+.preview-link:hover .preview-action { background: #edf3ff; }
+.task-illustration { width: 160px; height: 112px; object-fit: contain; }
+@media (min-width: 701px) and (max-width: 980px) {
+  .nav-links { gap: 12px; }
+  .nav-links a { font-size: 12px; }
+  .brand-by { display: none; }
+  .nav-action { font-size: 12px; padding-inline: 12px; }
+}
+@media (max-width: 980px) {
+  .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; }
+  .hero h1 { font-size: clamp(36px, 5vw, 48px); }
+  .hero-text { font-size: 15px; }
+  .demo-layout { gap: 28px; padding: 32px; }
+  .demo-copy h2 { font-size: 28px; }
+  .key-card { grid-template-columns: 120px minmax(140px, .75fr) minmax(0, 1.25fr); gap: 20px; }
+  .task-illustration { width: 120px; height: 90px; }
+}
+@media (max-width: 700px) {
+  .hero { grid-template-columns: 1fr; padding-block: 48px 56px; }
+  .hero h1 { font-size: clamp(38px, 10vw, 54px); }
+  .hero-kicker { margin-bottom: 16px; font-size: 13px; }
+  .hero-illustration { width: 100%; max-width: 500px; margin-inline: auto; border-radius: 20px; }
+  .hero-illustration figcaption { gap: 12px; font-size: 11px; }
+  .demo-section { padding-block: 0 64px; }
+  .demo-layout { grid-template-columns: 1fr; gap: 28px; padding: 24px; border-radius: 16px; }
+  .demo-copy h2 { font-size: 30px; }
+  .demo-hints { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 20px; padding-top: 16px; font-size: 12px; }
+  .screen-tab { padding-inline: 8px; }
+  .risk-copy { margin-bottom: 28px; }
+  .risk-cards { grid-template-columns: 1fr; gap: 16px; }
+  .boundary-illustration { max-height: 240px; }
+  .key-card { grid-template-columns: 100px minmax(0, 1fr); gap: 12px; }
+  .task-illustration { width: 100px; height: 80px; }
+}
+.task-example { min-width: 0; color: var(--ink); font-size: 12px; }
+.sorting-example { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sorting-group { padding: 12px; border: 1px solid #dce5f4; border-top: 3px solid #9fb5dc; border-radius: 6px; background: #fff; }
+.sorting-group > span { display: block; margin-bottom: 6px; color: var(--secondary); font-size: 11px; }
+.sorting-group strong { font-size: 12px; font-weight: 500; line-height: 1.6; }
+.sorting-missing { border-top-color: #d5b36b; background: #fffbf2; }
+.draft-example { padding: 14px 16px; border: 1px solid #d4e0f2; border-radius: 6px; background: #fff; }
+.draft-example-title { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #e0e8f4; font-weight: 500; }
+.draft-example-title > span { padding: 1px 6px; border: 1px solid #c8d8f7; border-radius: 3px; color: #526d9c; font-size: 10px; }
+.draft-example-sections { display: grid; gap: 4px; margin-top: 10px; color: var(--secondary); font-size: 11px; }
+.comparison-example { display: grid; grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr); align-items: center; gap: 8px; }
+.comparison-example > div { padding: 10px 12px; border: 1px solid #e0cfad; border-radius: 6px; background: #fffaf0; }
+.comparison-example > div > span { display: block; margin-bottom: 4px; color: var(--secondary); font-size: 11px; }
+.comparison-example strong { color: #865c19; font-size: 17px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.comparison-sign { color: #a77b32; font-size: 22px; text-align: center; }
+.comparison-example > p { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 11px; }
+@media (max-width: 700px) {
+  .task-example { grid-column: 1 / -1; }
+  .sorting-group { padding: 10px 8px; }
+  .sorting-group strong { font-size: 11px; }
+}
+  
+  </style>
+  <link rel="stylesheet" href="workflows.css">
+  <style>
+/* ==========================================================================
+   案B「ガラスの箱」 — 明るく透明。中は見えるが、外へは出ない。
+   ========================================================================== */
+:root {
+  --paper: #f2f5fb;
+  --surface: #ffffff;
+  --raised: #e9eef8;
+  --ink: #0c1a33;
+  --secondary: #47566f;
+  --muted: #66748c;
+  --hairline: rgba(12, 26, 51, .1);
+  --hairline-strong: rgba(12, 26, 51, .18);
+  --accent: #2957f0;
+  --accent-soft: #e6edff;
+  --local: #2957f0;
+  --local-soft: #e6edff;
+  --warn: #c8553d;
+  --iris: linear-gradient(110deg, #2957f0 0%, #6b5cff 52%, #13b6d8 100%);
+  --glass: rgba(255, 255, 255, .72);
+  --glass-edge: rgba(255, 255, 255, .95);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 30px 60px -42px rgba(12, 26, 51, .4);
+}
+html { background: var(--paper); }
+body { background: radial-gradient(900px 620px at 88% -140px, rgba(107, 92, 255, .13), transparent 62%), radial-gradient(820px 620px at -6% 220px, rgba(19, 182, 216, .1), transparent 62%), var(--paper); background-repeat: no-repeat; }
+
+/* --- header：浮いたガラスのバー --- */
+.site-header { padding-top: 12px; background: transparent; pointer-events: none; }
+.nav { min-height: 60px; padding: 8px 10px 8px 22px; border: 1px solid var(--glass-edge); border-radius: 20px; background: rgba(255, 255, 255, .7); box-shadow: inset 0 1px 0 #fff, 0 14px 34px -18px rgba(12, 26, 51, .3); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); pointer-events: auto; }
+.brand-mark { width: 14px; height: 14px; border: 1.5px solid var(--accent); border-radius: 4px; background: linear-gradient(135deg, rgba(41, 87, 240, .12), rgba(107, 92, 255, .4)); box-shadow: inset 0 0 0 2px #fff; }
+.footer-brand .brand-mark { width: 12px; height: 12px; }
+.nav-action, .button { border-radius: 999px; }
+.nav-action, .hero-actions .button:first-child, .demo-button { padding-inline: 20px; border-color: transparent; background: var(--ink); color: #fff; font-weight: 600; box-shadow: 0 10px 24px -12px rgba(12, 26, 51, .7); transition: background-color .16s ease, transform .16s ease, box-shadow .16s ease; }
+.nav-action:hover, .hero-actions .button:first-child:hover, .demo-button:hover { border-color: transparent; background: var(--accent); transform: translateY(-1px); box-shadow: 0 14px 28px -12px rgba(41, 87, 240, .8); }
+.hero-actions .button.button-quiet { padding-inline: 20px; border-color: var(--glass-edge); background: var(--glass); box-shadow: 0 8px 20px -14px rgba(12, 26, 51, .4); }
+.button:hover, .button-quiet:hover, .hero-actions .button.button-quiet:hover { border-color: rgba(41, 87, 240, .4); background: #fff; }
+
+/* --- hero --- */
+.b-hero { position: relative; overflow: hidden; }
+.b-hero-inner { padding-top: 48px; text-align: center; }
+.b-kicker { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 20px; padding: 6px 16px; border: 1px solid var(--glass-edge); border-radius: 999px; background: var(--glass); box-shadow: 0 8px 20px -14px rgba(12, 26, 51, .35); color: var(--accent); font-size: 13px; font-weight: 600; }
+.b-hero h1 { margin: 0; font-size: clamp(44px, 5.8vw, 82px); font-weight: 600; line-height: 1.2; letter-spacing: -.04em; }
+.b-iris { background: var(--iris); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.b-lead { max-width: 640px; margin: 20px auto 0; color: var(--secondary); font-size: 17px; line-height: 1.9; }
+.b-hero .hero-actions { justify-content: center; margin-top: 26px; }
+.b-hero .hero-small { margin-top: 14px; }
+
+/* ガラスの箱（CSS 3D） */
+.vault-stage { position: relative; height: 540px; margin-top: -4px; }
+.vault-scene { position: absolute; inset: 0; display: grid; place-items: center; padding-bottom: 36px; perspective: 2600px; perspective-origin: 50% 26%; }
+.vault { --s: 300px; --h: calc(var(--s) / 2); position: relative; width: var(--s); height: var(--s); transform: rotateX(var(--rx, -19deg)) rotateY(var(--ry, -34deg)); transform-style: preserve-3d; }
+.vault > * { position: absolute; }
+.face, .lid { inset: 0; border: 1.5px solid rgba(41, 87, 240, .6); background: linear-gradient(135deg, rgba(255, 255, 255, .55), rgba(190, 206, 255, .1) 52%, rgba(107, 92, 255, .16)); box-shadow: inset 0 0 44px rgba(107, 120, 255, .16); }
+.face--front { transform: translateZ(var(--h)); }
+.face--back { transform: rotateY(180deg) translateZ(var(--h)); }
+.face--right { transform: rotateY(90deg) translateZ(var(--h)); }
+.face--left { transform: rotateY(-90deg) translateZ(var(--h)); }
+.face--bottom { transform: rotateX(-90deg) translateZ(var(--h)); background: linear-gradient(135deg, rgba(41, 87, 240, .16), rgba(19, 182, 216, .12)); }
+.face--top { transform: rotateX(90deg) translateZ(var(--h)); border: 0; background: none; box-shadow: none; transform-style: preserve-3d; }
+.lid { position: absolute; transform-origin: 50% 0; animation: b-lid 1.6s cubic-bezier(.3, .9, .3, 1) .7s both; }
+.face--front::after, .face--right::after { position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; margin: -11px; border: 2px solid rgba(41, 87, 240, .95); border-radius: 50%; opacity: 0; content: ""; animation: b-ripple 5s ease-out infinite; }
+.face--right::after { animation-delay: -2.5s; }
+.vault-floor { top: 50%; left: 50%; width: 1000px; height: 1000px; margin: -500px; transform: translateY(calc(var(--h) + 2px)) rotateX(90deg); background: linear-gradient(rgba(41, 87, 240, .16) 1px, transparent 1px) 0 0 / 50px 50px, linear-gradient(90deg, rgba(41, 87, 240, .16) 1px, transparent 1px) 0 0 / 50px 50px; -webkit-mask-image: radial-gradient(closest-side, #000 18%, transparent 76%); mask-image: radial-gradient(closest-side, #000 18%, transparent 76%); }
+.vault-shadow { top: 50%; left: 50%; width: 560px; height: 560px; margin: -280px; transform: translateY(calc(var(--h) + 3px)) rotateX(90deg); background: radial-gradient(closest-side, rgba(22, 44, 130, .3), transparent 72%); }
+.bb { top: 50%; left: 50%; transform: translate(-50%, -50%) translate3d(var(--x, 0px), var(--y, 0px), var(--z, 0px)) rotateY(calc(var(--ry, -34deg) * -1)) rotateX(calc(var(--rx, -19deg) * -1)); }
+.vault-core { width: 88px; height: 88px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #ffffff, #a9bcff 26%, #2957f0 62%, #1b2f9d); color: #fff; font-size: 20px; font-weight: 700; letter-spacing: .02em; animation: b-core 3.2s ease-in-out infinite; }
+.vault-doc { width: 46px; height: 58px; border: 1px solid rgba(41, 87, 240, .35); border-radius: 7px; background: linear-gradient(#2957f0, #2957f0) 8px 11px / 16px 3px no-repeat, linear-gradient(#c5d1f3, #c5d1f3) 8px 23px / 29px 2px no-repeat, linear-gradient(#c5d1f3, #c5d1f3) 8px 31px / 29px 2px no-repeat, linear-gradient(#c5d1f3, #c5d1f3) 8px 39px / 20px 2px no-repeat, #fff; box-shadow: 0 12px 24px -10px rgba(12, 26, 51, .45); }
+.vault-check { display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px 6px 7px; border: 1px solid rgba(41, 87, 240, .22); border-radius: 999px; background: #fff; box-shadow: 0 12px 24px -12px rgba(12, 26, 51, .5); color: var(--ink); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.vault-check i { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: #1f9d6b; color: #fff; font-size: 11px; font-style: normal; }
+.vault-probe { top: 50%; left: 50%; width: 9px; height: 9px; margin: -4.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px 3px rgba(80, 110, 255, .8); opacity: 0; animation: b-probe-z 5s cubic-bezier(.4, 0, .6, 1) infinite; }
+.vault-probe--r { transform: rotateY(90deg); animation-name: b-probe-x; animation-delay: -2.5s; }
+.vault-badge { position: absolute; top: 34px; left: 50%; z-index: 2; display: inline-flex; align-items: center; gap: 8px; padding: 7px 16px 7px 12px; transform: translateX(-50%); border: 1px solid var(--glass-edge); border-radius: 999px; background: rgba(255, 255, 255, .86); box-shadow: 0 14px 30px -16px rgba(12, 26, 51, .45); color: var(--ink); font-size: 13px; font-weight: 600; white-space: nowrap; animation: b-badge .7s cubic-bezier(.2, .8, .2, 1) 2.1s both; }
+.vault-badge svg { width: 14px; height: 14px; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.vault-out { position: absolute; top: 47%; display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.vault-out--l { left: 0; }
+.vault-out--r { right: 0; flex-direction: row-reverse; }
+.vault-out-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px dashed rgba(12, 26, 51, .28); border-radius: 999px; background: rgba(255, 255, 255, .5); }
+.vault-out-chip svg { width: 20px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
+.vault-out-line { width: clamp(40px, 9vw, 150px); height: 0; border-top: 1.5px dashed rgba(12, 26, 51, .28); }
+.vault-out-x { width: 22px; height: 22px; display: grid; place-items: center; border: 1.5px solid var(--warn); border-radius: 50%; color: var(--warn); font-size: 11px; line-height: 1; }
+.vault-caption { position: absolute; right: 0; bottom: 20px; left: 0; display: flex; align-items: center; justify-content: center; gap: 14px; color: var(--secondary); font-size: 13px; }
+.vault-caption small { color: var(--muted); font-size: 11px; }
+
+/* --- signal strip：3枚のガラス板 --- */
+.signal-strip { border: 0; background: transparent; }
+.signal-inner { gap: 14px; padding-block: 0 24px; }
+.signal { justify-content: flex-start; padding: 18px 24px; border: 1px solid var(--glass-edge); border-radius: 18px; background: var(--glass); box-shadow: var(--glass-shadow); color: var(--ink); font-size: 14px; font-weight: 500; }
+.signal + .signal { border: 1px solid var(--glass-edge); }
+.signal-index { padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+
+/* --- section headings --- */
+.section-label, .eyebrow { width: fit-content; align-self: start; justify-self: start; padding: 4px 14px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; }
+.section h2, .deployment h2, .faq-grid h2, .consult h2 { font-weight: 600; letter-spacing: -.035em; }
+.faq-grid .section-label { margin-bottom: 16px; }
+
+/* --- 情報の送り先 --- */
+.risk-section { border-block: 0; background: transparent; }
+.risk-layout h2 { margin-top: 16px; }
+.risk-layout h2 span { background: var(--iris); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.risk-card { padding: 28px; border: 1px solid var(--glass-edge); border-radius: 26px; background: var(--glass); box-shadow: var(--glass-shadow); }
+.risk-card.is-warning { border-color: var(--glass-edge); background: linear-gradient(180deg, rgba(200, 85, 61, .06), transparent 50%), var(--glass); }
+.risk-card.is-local { border-color: rgba(41, 87, 240, .35); background: linear-gradient(180deg, rgba(41, 87, 240, .08), transparent 50%), #fff; box-shadow: inset 0 1px 0 #fff, 0 40px 70px -44px rgba(41, 87, 240, .7); }
+.risk-card.is-warning h3 { color: var(--warn); }
+.risk-card h3 { font-size: 21px; font-weight: 600; }
+.b-diagram { width: 100%; height: auto; display: block; margin: 8px 0; aspect-ratio: 5 / 3; }
+.b-diagram text { fill: var(--secondary); font-family: var(--sans); font-size: 13px; }
+.b-diagram .dg-open { fill: rgba(12, 26, 51, .025); stroke: rgba(12, 26, 51, .34); stroke-width: 1.4; stroke-dasharray: 5 6; stroke-linejoin: round; }
+.b-diagram .dg-glass { fill: rgba(41, 87, 240, .1); stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
+.b-diagram .dg-glass--top { fill: rgba(107, 92, 255, .16); }
+.b-diagram .dg-hidden { fill: none; stroke: rgba(41, 87, 240, .3); stroke-width: 1.2; }
+.b-diagram .dg-doc { fill: #fff; stroke: rgba(12, 26, 51, .35); stroke-width: 1.3; stroke-linejoin: round; }
+.b-diagram .dg-doc-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; opacity: .7; }
+.b-diagram .dg-route-warn { fill: none; stroke: rgba(200, 85, 61, .55); stroke-width: 1.5; stroke-dasharray: 3 6; }
+.b-diagram .dg-route-local { fill: none; stroke: rgba(41, 87, 240, .45); stroke-width: 1.5; stroke-dasharray: 3 6; }
+.b-diagram .dg-cloud { fill: #fff6f3; stroke: var(--warn); stroke-width: 1.6; stroke-linejoin: round; }
+.b-diagram .dg-dot-warn { fill: var(--warn); }
+.b-diagram .dg-dot-local { fill: var(--accent); }
+.b-diagram .dg-core-halo { fill: rgba(41, 87, 240, .14); }
+.b-diagram .dg-lock { fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* --- demo --- */
+.demo-layout { border-color: var(--glass-edge); border-radius: 28px; background: var(--glass); box-shadow: var(--glass-shadow); }
+.demo-copy .section-label { margin-bottom: 4px; }
+.poc-shell { border-radius: 16px; box-shadow: 0 40px 70px -40px rgba(12, 26, 51, .55); }
+.screen-tab { border-radius: 999px; }
+
+/* --- 日々の案件業務：3枚のカード --- */
+.card-meta { color: var(--accent); font-weight: 600; }
+@media (min-width: 1181px) {
+  .task-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; border-top: 0; }
+  .key-card { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 16px; padding: 28px; border: 1px solid var(--glass-edge); border-radius: 26px; background: var(--glass); box-shadow: var(--glass-shadow); transition: transform .25s ease, box-shadow .25s ease; }
+  .key-card:hover { transform: translateY(-4px); box-shadow: inset 0 1px 0 #fff, 0 40px 70px -40px rgba(41, 87, 240, .55); }
+  .key-card .task-illustration { width: 148px; height: 104px; }
+  .key-card h3 { font-size: 20px; font-weight: 600; }
+  .key-card .sorting-group { padding: 10px 8px; }
+  .key-card .sorting-group strong { font-size: 11.5px; }
+}
+
+/* --- 設計の考え方 / 導入 --- */
+.approach, .deployment { border-block: 0; background: linear-gradient(180deg, transparent, rgba(226, 233, 247, .85) 14%, rgba(226, 233, 247, .85) 86%, transparent); }
+.principle { padding: 22px 22px 24px; border: 1px solid var(--glass-edge); border-radius: 22px; background: var(--glass); box-shadow: var(--glass-shadow); }
+.principle-icon { width: 44px; height: 44px; padding: 9px; border-radius: 14px; background: var(--accent-soft); }
+.principle h3 { font-weight: 600; }
+.flow { border-color: var(--glass-edge); border-radius: 22px; background: var(--glass); box-shadow: var(--glass-shadow); }
+.flow-step .num { color: var(--accent); }
+.deployment-steps { border-color: var(--glass-edge); border-radius: 24px; background: var(--glass); box-shadow: var(--glass-shadow); }
+.deployment-step-label { border-color: transparent; background: var(--accent-soft); font-weight: 600; }
+
+/* --- 業務ごとの構成例 --- */
+.workflow-board { border-color: var(--glass-edge); border-radius: 26px; box-shadow: var(--glass-shadow); }
+
+/* --- faq --- */
+.faq-list { display: grid; gap: 10px; border-top: 0; }
+details.faq { padding-inline: 22px; border: 1px solid var(--glass-edge); border-radius: 18px; background: var(--glass); box-shadow: 0 16px 34px -30px rgba(12, 26, 51, .5); transition: background-color .2s ease; }
+details.faq[open] { background: #fff; }
+details.faq summary { font-weight: 500; }
+
+/* --- consult：最後だけ濃色 --- */
+.consult { border-top: 0; }
+.consult-panel { position: relative; overflow: hidden; border: 0; border-radius: 30px; background: radial-gradient(70% 150% at 100% 0%, rgba(107, 92, 255, .55), transparent 60%), radial-gradient(60% 140% at 0% 100%, rgba(19, 182, 216, .35), transparent 60%), #0c1a33; box-shadow: 0 50px 90px -50px rgba(12, 26, 51, .9); }
+.consult-panel .eyebrow { background: rgba(255, 255, 255, .14); color: #fff; }
+.consult h2 { color: #fff; }
+.consult p { color: rgba(255, 255, 255, .76); }
+.consult-action .button { padding-inline: 22px; border-color: #fff; background: #fff; color: var(--ink); font-weight: 600; }
+.consult-action .button:hover { border-color: #fff; background: #e6edff; }
+
+/* --- 見出しの改行位置・小さな画面での文字サイズ --- */
+.nb { display: inline-block; }
+.brand-mark { flex: none; }
+@media (min-width: 981px) { .faq-grid h2 { max-width: 400px; } }
+@media (max-width: 700px) {
+  .risk-layout h2 { font-size: clamp(24px, 6.8vw, 38px); }
+  .demo-copy h2 { font-size: clamp(24px, 7vw, 30px); }
+}
+
+/* --- motion --- */
+@keyframes b-lid { from { transform: rotateX(104deg); } to { transform: rotateX(0deg); } }
+@keyframes b-core { 0%, 100% { box-shadow: 0 0 0 10px rgba(41, 87, 240, .1), 0 0 0 24px rgba(41, 87, 240, .05), 0 0 60px 10px rgba(80, 110, 255, .5); } 50% { box-shadow: 0 0 0 14px rgba(41, 87, 240, .12), 0 0 0 34px rgba(41, 87, 240, .04), 0 0 80px 16px rgba(80, 110, 255, .62); } }
+@keyframes b-probe-z { 0%, 10% { transform: translateZ(0); opacity: 0; } 16% { opacity: 1; } 46% { transform: translateZ(calc(var(--h) - 8px)); opacity: 1; } 78% { transform: translateZ(0); opacity: .9; } 84%, 100% { transform: translateZ(0); opacity: 0; } }
+@keyframes b-probe-x { 0%, 10% { transform: translateX(0) rotateY(90deg); opacity: 0; } 16% { opacity: 1; } 46% { transform: translateX(calc(var(--h) - 8px)) rotateY(90deg); opacity: 1; } 78% { transform: translateX(0) rotateY(90deg); opacity: .9; } 84%, 100% { transform: translateX(0) rotateY(90deg); opacity: 0; } }
+@keyframes b-ripple { 0%, 45% { transform: scale(.4); opacity: 0; } 47% { opacity: 1; } 76%, 100% { transform: scale(7); opacity: 0; } }
+@keyframes b-badge { from { transform: translate(-50%, 10px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+.reveal-on .rv { opacity: 0; transform: translateY(22px) scale(.985); transition: opacity .8s cubic-bezier(.2, .7, .2, 1), transform .8s cubic-bezier(.2, .7, .2, 1); }
+.reveal-on .rv.is-in { opacity: 1; transform: none; }
+.reveal-on .risk-card.rv:nth-child(2), .reveal-on .key-card.rv:nth-child(2), .reveal-on .principle.rv:nth-child(2), .reveal-on .signal.rv:nth-child(2) { transition-delay: .1s; }
+.reveal-on .key-card.rv:nth-child(3), .reveal-on .principle.rv:nth-child(3), .reveal-on .signal.rv:nth-child(3) { transition-delay: .2s; }
+@media (min-width: 1181px) { .reveal-on .key-card.rv.is-in:hover { transform: translateY(-4px); transition-delay: 0s; transition-duration: .25s; } }
+
+@media (max-width: 980px) {
+  .vault-out-line { width: 28px; }
+  .principle { padding: 18px 18px 20px; }
+}
+@media (max-width: 700px) {
+  .site-header { padding-top: 8px; }
+  .nav { min-height: 54px; padding: 6px 8px 6px 16px; border-radius: 16px; }
+  .brand-by { display: none; }
+  .b-hero-inner { padding-top: 40px; }
+  .b-hero h1 { font-size: clamp(36px, 10.6vw, 52px); }
+  .b-lead { margin-top: 18px; font-size: 15px; }
+  .b-hero .hero-actions { margin-top: 24px; }
+  .vault-stage { height: 430px; }
+  .vault { --s: 200px; }
+  .vault-core { width: 64px; height: 64px; font-size: 15px; }
+  .vault-doc { width: 34px; height: 44px; background-size: 12px 3px, 20px 2px, 20px 2px, 14px 2px, auto; background-position: 6px 8px, 6px 17px, 6px 24px, 6px 31px, 0 0; }
+  .vault-check { padding: 4px 10px 4px 5px; font-size: 10px; }
+  .vault-badge { top: 22px; font-size: 11px; padding: 6px 12px 6px 10px; }
+  .vault-out { display: none; }
+  .vault-caption { gap: 8px; font-size: 11px; }
+  .signal-inner { gap: 10px; padding-block: 0 8px; }
+  .signal { padding: 14px 18px; }
+  .risk-card { padding: 20px; border-radius: 20px; }
+  .demo-layout { border-radius: 20px; }
+  .consult-panel { border-radius: 22px; }
+  .b-diagram text { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lid, .vault-core, .vault-probe, .vault-badge, .face--front::after, .face--right::after { animation: none; }
+  .vault-probe { opacity: 0; }
+}
+  </style>
+  <script src="workflows.js" defer></script>
+</head>
+<body class="plan-b">
+    <header class="site-header">
+    <nav class="nav" aria-label="メインナビゲーション">
+      <a class="brand" href="#top" aria-label="JurisLocal ホーム">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">JurisLocal</span>
+        <span class="brand-by">by Alteor</span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="メニューを開く">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 6h14M3 14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <div class="nav-links" id="nav-links">
+        <a href="#local-ai">ローカルAIの理由</a>
+        <a href="#approach">仕組み</a>
+        <a href="#usecases">活用例</a>
+        <a href="#demo">画面・デモ</a>
+        <a href="#faq">よくある質問</a>
+      </div>
+      <a class="nav-action" href="demo/" target="_blank" rel="noopener">デモを体験 <span class="arrow" aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="b-hero">
+      <div class="wrap b-hero-inner">
+        <p class="b-kicker">法律事務所のためのローカルAI</p>
+        <h1>そのAIは、<br><span class="b-iris">事務所から出ない。</span></h1>
+        <p class="b-lead">依頼者の情報を、外部AIへ送らない。<br>資料の整理も、書類の下準備も、事務所が管理するAI環境の中で。</p>
+        <div class="hero-actions">
+          <a class="button" href="demo/" target="_blank" rel="noopener">デモを体験する <span class="arrow" aria-hidden="true">↗</span></a>
+          <a class="button button-quiet" href="#local-ai">ローカルAIの理由 <span class="arrow" aria-hidden="true">↓</span></a>
+        </div>
+        <p class="hero-small">サンプル案件で、実際の操作感をお試しください</p>
+
+        <div class="vault-stage" role="img" aria-label="ガラスの箱で表した事務所の中に所内AIと案件資料があり、外部AIとはつながっていない様子を表した概念図">
+          <div class="vault-out vault-out--l" aria-hidden="true">
+            <span class="vault-out-chip"><svg viewBox="0 0 24 16"><path d="M6 15h12a4.5 4.5 0 0 0 .6-9A6.5 6.5 0 0 0 6.2 4.6 5.2 5.2 0 0 0 6 15Z"/></svg>外部AI</span>
+            <span class="vault-out-line"></span><span class="vault-out-x">✕</span>
+          </div>
+          <div class="vault-out vault-out--r" aria-hidden="true">
+            <span class="vault-out-chip"><svg viewBox="0 0 24 16"><path d="M6 15h12a4.5 4.5 0 0 0 .6-9A6.5 6.5 0 0 0 6.2 4.6 5.2 5.2 0 0 0 6 15Z"/></svg>外部クラウド</span>
+            <span class="vault-out-line"></span><span class="vault-out-x">✕</span>
+          </div>
+          <div class="vault-badge" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>事務所の中で稼働</div>
+          <div class="vault-scene" aria-hidden="true">
+            <div class="vault">
+              <div class="vault-floor"></div>
+              <div class="vault-shadow"></div>
+              <div class="face face--bottom"></div>
+              <div class="face face--back"></div>
+              <div class="face face--left"></div>
+              <div class="vault-probe"></div>
+              <div class="vault-probe vault-probe--r"></div>
+              <div class="vault-doc bb" style="--x:-88px;--y:18px;--z:30px"></div>
+              <div class="vault-doc bb" style="--x:20px;--y:-54px;--z:-88px"></div>
+              <div class="vault-doc bb" style="--x:76px;--y:34px;--z:56px"></div>
+              <div class="vault-core bb">AI</div>
+              <div class="vault-check bb" style="--x:30px;--y:118px;--z:92px"><i>✓</i>担当者が確認</div>
+              <div class="face face--right"></div>
+              <div class="face face--front"></div>
+              <div class="face face--top"><div class="lid"></div></div>
+            </div>
+          </div>
+          <p class="vault-caption" aria-hidden="true"><span>案件資料</span><span>→</span><span>所内AI</span><span>→</span><span>担当者が確認</span><small>概念図</small></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="signal-strip" aria-label="JurisLocalの設計方針">
+      <div class="signal-inner wrap">
+        <div class="signal"><span class="signal-index">01</span><span>案件資料を外部AIへ送らない</span></div>
+        <div class="signal"><span class="signal-index">02</span><span>事務所の環境でAIを動かす</span></div>
+        <div class="signal"><span class="signal-index">03</span><span>法的判断は専門家が行う</span></div>
+      </div>
+    </section>
+
+    <section class="section risk-section" id="local-ai">
+      <div class="wrap risk-layout">
+        <div class="risk-copy">
+          <div class="section-label">情報の送り先</div>
+          <h2>送信ボタンの先に、<br><span>何があるか見えていますか。</span></h2>
+          <p class="risk-intro">クラウドAIは入力内容をサービス提供者側の環境へ送って処理します。保存・学習利用の条件は、サービス・契約・設定で異なります。</p>
+        </div>
+        <div class="risk-cards">
+          <article class="risk-card is-warning">
+            <div class="risk-card-label">クラウドAIに入力した場合</div>
+            <h3>入力した資料は、事務所の外へ送信されます。</h3>
+            <svg class="b-diagram" viewBox="0 0 500 300" role="img" aria-label="ふたのない箱から、案件資料が外部のクラウドAIへ流れ出ていく図">
+              <path class="dg-open" d="M70 104 170 62l100 42-100 42Z"/>
+              <path class="dg-open" d="M70 104v106l100 42V146Z"/>
+              <path class="dg-open" d="M170 146v106l100-42V104Z"/>
+              <text x="170" y="282" text-anchor="middle">事務所</text>
+              <path class="dg-route-warn" d="M196 170C258 170 300 148 366 148"/>
+              <g transform="translate(142 140)"><path class="dg-doc" d="M4 0h28l14 14v44a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4Z"/><path class="dg-doc-line" d="M10 24h26M10 34h26M10 44h16"/></g>
+              <path class="dg-cloud" d="M372 184h72a29 29 0 0 0 3-58 39 39 0 0 0-72-12 35 35 0 0 0-3 70Z"/>
+              <text x="410" y="216" text-anchor="middle">外部のクラウドAI</text>
+              <circle class="dg-dot-warn" r="4.5"><animateMotion dur="2.6s" repeatCount="indefinite" path="M196 170C258 170 300 148 366 148"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.12;.85;1" dur="2.6s" repeatCount="indefinite"/></circle>
+              <circle class="dg-dot-warn" r="4.5"><animateMotion dur="2.6s" begin="-.87s" repeatCount="indefinite" path="M196 170C258 170 300 148 366 148"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.12;.85;1" dur="2.6s" begin="-.87s" repeatCount="indefinite"/></circle>
+              <circle class="dg-dot-warn" r="4.5"><animateMotion dur="2.6s" begin="-1.73s" repeatCount="indefinite" path="M196 170C258 170 300 148 366 148"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.12;.85;1" dur="2.6s" begin="-1.73s" repeatCount="indefinite"/></circle>
+            </svg>
+            <p>送信後の保存・利用・削除の条件は、サービスや契約、設定により異なります。</p>
+          </article>
+          <article class="risk-card is-local">
+            <div class="risk-card-label">JurisLocalの場合</div>
+            <h3>案件資料を、事務所内で処理。</h3>
+            <svg class="b-diagram" viewBox="0 0 500 300" role="img" aria-label="閉じたガラスの箱の中に案件資料と所内AIがあり、データが箱の中だけを巡る図">
+              <path class="dg-hidden" d="M250 30v130M250 160 120 215M250 160l130 55"/>
+              <path class="dg-route-local" d="M210 196C232 222 276 222 298 196M298 180C276 156 232 156 210 180"/>
+              <g transform="translate(166 158)"><path class="dg-doc" d="M4 0h28l14 14v44a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4Z"/><path class="dg-doc-line" d="M10 24h26M10 34h26M10 44h16"/></g>
+              <circle class="dg-core-halo" cx="318" cy="188" r="32"/>
+              <circle class="dg-dot-local" cx="318" cy="188" r="17"/>
+              <circle class="dg-dot-local" r="4.5"><animateMotion dur="2.4s" repeatCount="indefinite" path="M210 196C232 222 276 222 298 196"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.85;1" dur="2.4s" repeatCount="indefinite"/></circle>
+              <circle class="dg-dot-local" r="4.5"><animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" path="M298 180C276 156 232 156 210 180"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.85;1" dur="2.4s" begin="-1.2s" repeatCount="indefinite"/></circle>
+              <path class="dg-glass" d="M120 85v130l130 55V140Z"/>
+              <path class="dg-glass" d="M250 140v130l130-55V85Z"/>
+              <path class="dg-glass dg-glass--top" d="M120 85 250 30l130 55-130 55Z"/>
+              <g class="dg-lock" transform="translate(239 66)"><rect x="0" y="9" width="22" height="16" rx="3"/><path d="M5 9V6a6 6 0 0 1 12 0v3"/></g>
+              <text x="250" y="294" text-anchor="middle">事務所</text>
+            </svg>
+            <p>事務所が管理する環境にモデルを配置し、外部の生成AIサービスへ送らずに処理する構成を設計します。</p>
+          </article>
+          <p class="risk-source">個人情報保護委員会は、クラウド生成AIへ個人データを入力する際、利用目的に必要な範囲か、学習利用の有無などを確認するよう案内しています。<a href="https://www.ppc.go.jp/all_fad_index/fad2-3-3-q1/" target="_blank" rel="noopener noreferrer">公式の注意事項 ↗</a><br>※実際の通信範囲・保管先は、ネットワークや連携設定を含めて導入時に設計します。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo-section wrap" id="demo">
+      <div class="demo-layout">
+        <div class="demo-copy">
+          <div class="section-label">案件ワークスペース</div>
+          <h2>画面を見る。<br>そのまま、試してみる。</h2>
+          <p>資料、期限、案件内の連絡。<br>いつもの業務を、一つの場所で。</p>
+          <a class="button demo-button" href="demo/" target="_blank" rel="noopener">デモを開く <span class="arrow" aria-hidden="true">↗</span></a>
+          <div class="demo-hints"><span>1. 案件を選ぶ</span><span>2. 資料を確認</span><span>3. 書類案を作成</span></div>
+          <p class="demo-note">サンプルデータを使った体験用デモです</p>
+        </div>
+        <div class="demo-preview" id="screens" aria-label="JurisLocalの案件管理画面">
+        <div class="poc-shell">
+          <div class="poc-topbar">
+            <span class="poc-title">JurisLocal 案件管理 <span class="poc-tag">画面例</span></span>
+          </div>
+          <div id="poc-panel" role="tabpanel" aria-label="選択した案件管理画面" aria-labelledby="tab-dashboard">
+            <a class="preview-link" href="demo/" target="_blank" rel="noopener" aria-label="JurisLocalの操作デモを開く">
+              <img class="poc-image" id="poc-screen" src="screenshots/dashboard.png" alt="案件管理画面の例。担当案件と期限を一覧できます。" width="2450" height="1832" loading="lazy">
+              <span class="preview-action">この画面を操作する <span aria-hidden="true">↗</span></span>
+            </a>
+          </div>
+        </div>
+        <div class="screen-tabs" role="tablist" aria-label="案件管理画面を選択">
+          <button class="screen-tab" id="tab-dashboard" type="button" role="tab" aria-selected="true" aria-controls="poc-panel" data-src="screenshots/dashboard.png" data-alt="案件管理画面の例。担当案件と期限を一覧できます。" data-caption="ダッシュボード：担当案件と期限を一覧できます。">ダッシュボード</button>
+          <button class="screen-tab" id="tab-calendar" type="button" role="tab" aria-selected="false" aria-controls="poc-panel" tabindex="-1" data-src="screenshots/calendar.png" data-alt="期限・カレンダー画面の例。案件の締め切りと期限一覧を表示しています。" data-caption="期限・カレンダー：締め切りと担当者を一画面で確認できます。">期限・カレンダー</button>
+          <button class="screen-tab" id="tab-chat" type="button" role="tab" aria-selected="false" aria-controls="poc-panel" tabindex="-1" data-src="screenshots/chat.png" data-alt="案件チャット画面の例。案件参加者間の確認内容を表示しています。" data-caption="案件チャット：案件参加者間の連絡を案件ごとにまとめます。">案件チャット</button>
+          <p class="screen-caption" id="screen-caption"><strong>ダッシュボード：</strong>担当案件と期限を一覧できます。</p>
+        </div>
+        <p class="poc-notice">画面内にはサンプルの案件情報を表示しています。</p>
+      </div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="work">
+      <div class="section-head">
+        <div class="section-label">日々の案件業務</div>
+        <div><h2>読み取り、転記し、<br>何度も照合する。</h2><p class="section-intro">資料の整理、書類案の作成、提出前の照合を支援します。</p></div>
+      </div>
+      <div class="task-grid">
+        <article class="key-card">
+          <img class="task-illustration" src="illustrations/organize.svg" alt="" width="300" height="210" loading="lazy">
+          <div class="task-title"><div class="card-meta">資料を整理</div>
+          <h3>事実・推測・不足を整理</h3></div>
+          <div class="task-example sorting-example" role="img" aria-label="資料の情報を3つに分ける例。事実は振込の記録あり、推測は返金の意向あり、不足は原本の確認">
+            <div class="sorting-group"><span>事実</span><strong>振込の記録あり</strong></div>
+            <div class="sorting-group"><span>推測</span><strong>返金の意向あり</strong></div>
+            <div class="sorting-group sorting-missing"><span>不足</span><strong>原本の確認</strong></div>
+          </div>
+        </article>
+        <article class="key-card">
+          <img class="task-illustration" src="illustrations/draft.svg" alt="" width="300" height="210" loading="lazy">
+          <div class="task-title"><div class="card-meta">書類案を準備</div>
+          <h3>書類の初稿を準備</h3></div>
+          <div class="task-example draft-example" role="img" aria-label="調査・確認報告書の案の例。相談内容、確認できる事実、今後の確認事項の3つに整理">
+            <div class="draft-example-title">調査・確認報告書 <span>案</span></div>
+            <div class="draft-example-sections"><span>1. 相談内容</span><span>2. 確認できる事実</span><span>3. 今後の確認事項</span></div>
+          </div>
+        </article>
+        <article class="key-card">
+          <img class="task-illustration" src="illustrations/verify.svg" alt="" width="300" height="210" loading="lazy">
+          <div class="task-title"><div class="card-meta">提出前に確認</div>
+          <h3>提出前の照合</h3></div>
+          <div class="task-example comparison-example" role="img" aria-label="金額の照合例。書類案では300万円、銀行取引明細では280万円で記載が不一致。原資料を確認する必要がある">
+            <div><span>書類案</span><strong>300万円</strong></div><span class="comparison-sign" aria-hidden="true">≠</span><div><span>銀行取引明細</span><strong>280万円</strong></div>
+            <p>金額の不一致を、原資料で確認</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section approach" id="approach">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-label">設計の考え方</div>
+          <div><h2>定型作業はAIに。<br>判断は、先生に。</h2><p class="section-intro">情報の置き場所、根拠の確認、最終判断まで所内の手順に組み込みます。</p></div>
+        </div>
+        <div class="principles">
+          <article class="principle"><svg class="principle-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/><path d="M7.5 7h.01M7.5 17h.01M11 7h5M11 17h5"/></svg><h3>事務所内で動かす</h3></article>
+          <article class="principle"><svg class="principle-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.75h8l4 4v12.5H6z"/><path d="M14 3.75v4h4M9 12h6M9 15.5h3"/><circle cx="17" cy="17" r="3"/><path d="m19.2 19.2 1.7 1.7"/></svg><h3>根拠に戻れる</h3></article>
+          <article class="principle"><svg class="principle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="3.25"/><path d="M3.75 19v-1.5a5.25 5.25 0 0 1 10.5 0V19zM15 12.5l2 2 3.5-4"/></svg><h3>人が確認して承認する</h3></article>
+        </div>
+        <div class="flow" aria-label="案件資料から確認・承認までの流れ">
+          <div class="flow-step"><span class="num">01</span><svg class="flow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.75h8l4 4v12.5H6z"/><path d="M14 3.75v4h4M9 12h6M9 15.5h6"/></svg><h3>資料を登録</h3></div>
+          <div class="flow-step"><span class="num">02</span><svg class="flow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM8 9h8M8 12h5M8 15h7"/><path d="m15 15 1.5 1.5L20 13"/></svg><h3>案と確認点を作成</h3></div>
+          <div class="flow-step"><span class="num">03</span><svg class="flow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.75h8l4 4v12.5H6z"/><path d="M14 3.75v4h4M9 12h6"/><circle cx="16.5" cy="16.5" r="3"/><path d="m18.7 18.7 1.5 1.5"/></svg><h3>元資料の根拠を確認</h3></div>
+          <div class="flow-step"><span class="num">04</span><svg class="flow-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="3.25"/><path d="M3.75 19v-1.5a5.25 5.25 0 0 1 10.5 0V19zM15 12.5l2 2 3.5-4"/></svg><h3>担当者が確定</h3></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="usecases">
+      <div class="section-head"><div class="section-label">業務ごとの構成例</div><div><h2>資料の食い違いを、<br>確認できる形に。</h2><p class="section-intro">どの資料に戻り、何を確かめ、どこまで書類に反映するか。民事・刑事の業務に合わせて、AIと担当者の流れを設計します。</p></div></div>
+      <div class="workflow-board"><div class="workflow-tabs" role="tablist" aria-label="業務フローの例を選択"><button type="button" role="tab" id="workflow-tab-credit" aria-selected="true" aria-controls="workflow-credit" tabindex="0"><span>倒産・再生</span><strong>債権者一覧</strong></button><button type="button" role="tab" id="workflow-tab-form" aria-selected="false" aria-controls="workflow-form" tabindex="-1"><span>家事事件</span><strong>申立書の下書き</strong></button><button type="button" role="tab" id="workflow-tab-family" aria-selected="false" aria-controls="workflow-family" tabindex="-1"><span>相続・調停</span><strong>相続関係の整理</strong></button><button type="button" role="tab" id="workflow-tab-case" aria-selected="false" aria-controls="workflow-case" tabindex="-1"><span>民事・刑事</span><strong>書面の照合・承認</strong></button></div><section class="workflow-panel" id="workflow-credit" role="tabpanel" aria-labelledby="workflow-tab-credit" data-review="before" >
+      <header class="workflow-panel-header"><div><h3>同じ名義、違う金額。どの届出を一覧に残すか。</h3><p>届出書と添付資料を照合し、重複・訂正の可能性を人が確認する構成例</p></div><div class="workflow-stage-control"><span>確認の前後を見る</span><div role="group" aria-label="担当者による確認の前後"><button type="button" data-review-stage="before" aria-pressed="true">確認前</button><button type="button" data-review-stage="after" aria-pressed="false">確認後の例</button></div></div></header>
+      <div class="workflow-lanes">
+        <section class="workflow-lane lane-sources" aria-labelledby="lane-credit-sources"><h4 class="workflow-lane-title" id="lane-credit-sources"><span>01</span>所内の資料</h4><div class="workflow-evidence"><article class="evidence-card " id="evidence-credit-01"><div class="evidence-heading"><span class="evidence-number">01</span><strong>債権届出書 01</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>名義</dt><dd>A商事</dd></div><div><dt>届出額</dt><dd>120万円（元本100・利息20）</dd></div><div><dt>対象</dt><dd>INV-042</dd></div></dl></div><div class="evidence-locator">届出書 01 / 7月1日受付・1ページ</div></article><article class="evidence-card " id="evidence-credit-02"><div class="evidence-heading"><span class="evidence-number">02</span><strong>債権届出書 02</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>名義</dt><dd>株式会社A商事</dd></div><div><dt>届出額</dt><dd>100万円（元本100・利息0）</dd></div><div><dt>対象</dt><dd>INV-042</dd></div></dl></div><div class="evidence-locator">届出書 02 / 7月8日受付・1ページ</div></article><article class="evidence-card " id="evidence-credit-03"><div class="evidence-heading"><span class="evidence-number">03</span><strong>添付の請求書</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>発行者</dt><dd>株式会社A商事</dd></div><div><dt>金額</dt><dd>100万円</dd></div><div><dt>請求番号</dt><dd>INV-042</dd></div></dl></div><div class="evidence-locator">請求書 / 金額欄</div></article></div></section>
+        <section class="workflow-lane lane-analysis" aria-labelledby="lane-credit-analysis"><h4 class="workflow-lane-title" id="lane-credit-analysis"><span>02</span>AIが根拠を並べて整理</h4><div class="workflow-table-scroll"><table class="workflow-table "><thead><tr><th scope="col">照合する項目</th><th scope="col">資料にある記載</th></tr></thead><tbody><tr><td>債権者名</td><td>A商事 / 株式会社A商事 <button class="evidence-ref" type="button" data-reference="evidence-credit-01" aria-controls="evidence-credit-01" aria-label="根拠資料 01 を強調">01</button><button class="evidence-ref" type="button" data-reference="evidence-credit-02" aria-controls="evidence-credit-02" aria-label="根拠資料 02 を強調">02</button></td></tr><tr><td>届出額</td><td><span class="conflict-value">120万円 / 100万円</span> <button class="evidence-ref" type="button" data-reference="evidence-credit-01" aria-controls="evidence-credit-01" aria-label="根拠資料 01 を強調">01</button><button class="evidence-ref" type="button" data-reference="evidence-credit-02" aria-controls="evidence-credit-02" aria-label="根拠資料 02 を強調">02</button></td></tr><tr><td>請求の特定</td><td>3つの資料に INV-042 <button class="evidence-ref" type="button" data-reference="evidence-credit-01" aria-controls="evidence-credit-01" aria-label="根拠資料 01 を強調">01</button><button class="evidence-ref" type="button" data-reference="evidence-credit-02" aria-controls="evidence-credit-02" aria-label="根拠資料 02 を強調">02</button><button class="evidence-ref" type="button" data-reference="evidence-credit-03" aria-controls="evidence-credit-03" aria-label="根拠資料 03 を強調">03</button></td></tr><tr><td>差額の所在</td><td>元本は同額、利息欄に20万円の差 <button class="evidence-ref" type="button" data-reference="evidence-credit-01" aria-controls="evidence-credit-01" aria-label="根拠資料 01 を強調">01</button><button class="evidence-ref" type="button" data-reference="evidence-credit-02" aria-controls="evidence-credit-02" aria-label="根拠資料 02 を強調">02</button></td></tr></tbody></table></div><div class="workflow-finding"><strong>同じ債権者の候補に、20万円の差</strong><p>請求番号は共通、差額は利息欄。名義の表記だけでまとめず、訂正の有無と差の理由を原本で確認します。</p></div><p class="reference-hint">青い資料番号から、対応する元資料を確認できます</p></section>
+        <section class="workflow-lane lane-review" aria-labelledby="lane-credit-review"><h4 class="workflow-lane-title" id="lane-credit-review"><span>03</span>担当者が判断・確認</h4><div class="review-question">同じ請求の訂正と確認できた？</div><div class="review-branch-lines" aria-hidden="true"><svg viewBox="0 0 100 32" preserveAspectRatio="none"><path d="M50 0V12M22 12H78M22 12V32M78 12V32"/></svg></div>
+    <div class="review-branches"><div class="review-path path-wait"><span>確認が足りない</span><strong>2件を残して照会</strong></div><div class="review-path path-ready"><span>根拠を確認できた</span><strong>訂正内容を反映</strong></div></div>
+    <div class="review-instruction"><span class="before-review">受付記録と届出書の原本を確認。訂正か別件かが分かるまで、2件を統合しません。</span><span class="after-review">この例では、担当者が利息計上の訂正と確認。元本と利息を分け、01の記載も履歴に残します。</span></div></section>
+      </div>
+      <div class="workflow-return"><svg viewBox="0 0 1000 28" preserveAspectRatio="none" aria-hidden="true"><path d="M970 0V18H24V0M18 8l6-8 6 8"/></svg><span>訂正か別件かを判断できない場合は、届出書・受付記録の追加確認へ</span></div>
+      <section class="workflow-output" aria-labelledby="output-title-credit"><div class="workflow-output-heading"><span>確認を経て、成果物へ</span><h4 id="output-title-credit">債権者一覧表の転記案</h4><div class="output-stage-label"><span class="before-review"><span class="status-pending">確認前の状態</span></span><span class="after-review"><span class="status-confirmed">担当者が確認した後の例</span></span></div></div><div class="workflow-output-body"><div class="workflow-table-scroll"><table class="workflow-table "><thead><tr><th scope="col">債権者候補</th><th scope="col">元本・利息の転記案</th><th scope="col">確認状況</th><th scope="col">根拠</th></tr></thead><tbody><tr><td>株式会社A商事</td><td><span class="before-review">元本100万円 / 利息は要確認</span><span class="after-review">元本100万円 / 利息0円</span></td><td><span class="before-review"><span class="status-pending">訂正・別件を確認中</span></span><span class="after-review"><span class="status-confirmed">担当者が訂正届と確認</span></span></td><td><button class="evidence-ref" type="button" data-reference="evidence-credit-01" aria-controls="evidence-credit-01" aria-label="根拠資料 01 を強調">01</button><button class="evidence-ref" type="button" data-reference="evidence-credit-02" aria-controls="evidence-credit-02" aria-label="根拠資料 02 を強調">02</button><button class="evidence-ref" type="button" data-reference="evidence-credit-03" aria-controls="evidence-credit-03" aria-label="根拠資料 03 を強調">03</button></td></tr></tbody></table></div><p class="output-detail"><span class="before-review">未確定の行は保留。どちらかの金額を自動で採用しません。</span><span class="after-review">訂正前の利息20万円 → 訂正後0円。採用理由と、訂正前後の届出を一緒に残します。</span></p></div></section>
+    </section><section class="workflow-panel" id="workflow-form" role="tabpanel" aria-labelledby="workflow-tab-form" data-review="before" hidden>
+      <header class="workflow-panel-header"><div><h3>28万円と31.5万円。違いは、手取りか支給総額か。</h3><p>資料の値と入力先の定義を照合し、不足資料を切り分ける構成例</p></div><div class="workflow-stage-control"><span>確認の前後を見る</span><div role="group" aria-label="担当者による確認の前後"><button type="button" data-review-stage="before" aria-pressed="true">確認前</button><button type="button" data-review-stage="after" aria-pressed="false">確認後の例</button></div></div></header>
+      <div class="workflow-lanes">
+        <section class="workflow-lane lane-sources" aria-labelledby="lane-form-sources"><h4 class="workflow-lane-title" id="lane-form-sources"><span>01</span>所内の資料</h4><div class="workflow-evidence"><article class="evidence-card " id="evidence-form-01"><div class="evidence-heading"><span class="evidence-number">01</span><strong>初回の面談メモ</strong></div><div class="evidence-body"><p>「毎月の手取りは <mark>28万円</mark>。住所は転居予定です」</p></div><div class="evidence-locator">面談記録 / 収入・住所の聞き取り</div></article><article class="evidence-card " id="evidence-form-02"><div class="evidence-heading"><span class="evidence-number">02</span><strong>直近の給与明細</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>支給総額</dt><dd>31.5万円</dd></div><div><dt>差引支給額</dt><dd>28万円</dd></div><div><dt>対象月</dt><dd>6月</dd></div></dl></div><div class="evidence-locator">給与明細 / 支給・控除欄</div></article><article class="evidence-card " id="evidence-form-03"><div class="evidence-heading"><span class="evidence-number">03</span><strong>事務所で使う書式</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>収入欄</dt><dd>支給総額を月額で記入</dd></div><div><dt>対象期間</dt><dd>直近1か月</dd></div><div><dt>住所欄</dt><dd>確認資料と照合</dd></div></dl></div><div class="evidence-locator">入力先の書式 / 項目定義</div></article></div></section>
+        <section class="workflow-lane lane-analysis" aria-labelledby="lane-form-analysis"><h4 class="workflow-lane-title" id="lane-form-analysis"><span>02</span>AIが根拠を並べて整理</h4><div class="workflow-table-scroll"><table class="workflow-table "><thead><tr><th scope="col">項目</th><th scope="col">整理する内容</th></tr></thead><tbody><tr><td>収入の基準</td><td>28万円＝手取り、31.5万円＝支給総額 <button class="evidence-ref" type="button" data-reference="evidence-form-01" aria-controls="evidence-form-01" aria-label="根拠資料 01 を強調">01</button><button class="evidence-ref" type="button" data-reference="evidence-form-02" aria-controls="evidence-form-02" aria-label="根拠資料 02 を強調">02</button></td></tr><tr><td>転記先の定義</td><td>この書式では、直近月の支給総額 <button class="evidence-ref" type="button" data-reference="evidence-form-03" aria-controls="evidence-form-03" aria-label="根拠資料 03 を強調">03</button></td></tr><tr><td>住所</td><td><span class="conflict-value">転居後の住所が資料にない</span> <button class="evidence-ref" type="button" data-reference="evidence-form-01" aria-controls="evidence-form-01" aria-label="根拠資料 01 を強調">01</button></td></tr></tbody></table></div><div class="workflow-finding"><strong>金額の大きさではなく、欄の定義で照合</strong><p>「収入」という同じ言葉でも、手取り・支給総額・対象期間が違えば、そのまま転記できません。</p></div><p class="reference-hint">青い資料番号から、対応する元資料を確認できます</p></section>
+        <section class="workflow-lane lane-review" aria-labelledby="lane-form-review"><h4 class="workflow-lane-title" id="lane-form-review"><span>03</span>担当者が判断・確認</h4><div class="review-question">書式の定義と期間が合う？</div><div class="review-branch-lines" aria-hidden="true"><svg viewBox="0 0 100 32" preserveAspectRatio="none"><path d="M50 0V12M22 12H78M22 12V32M78 12V32"/></svg></div>
+    <div class="review-branches"><div class="review-path path-wait"><span>確認が足りない</span><strong>不足資料を依頼</strong></div><div class="review-path path-ready"><span>根拠を確認できた</span><strong>確認できた欄を反映</strong></div></div>
+    <div class="review-instruction"><span class="before-review">給与明細の対象月と収入欄の定義を確認。転居後の住所は追加資料を依頼します。</span><span class="after-review">この例では、6月の支給総額31.5万円を採用。住所は資料が揃うまで確認待ちのままです。</span></div></section>
+      </div>
+      <div class="workflow-return"><svg viewBox="0 0 1000 28" preserveAspectRatio="none" aria-hidden="true"><path d="M970 0V18H24V0M18 8l6-8 6 8"/></svg><span>基準・対象期間・住所が確認できない欄は、資料の依頼へ戻す</span></div>
+      <section class="workflow-output" aria-labelledby="output-title-form"><div class="workflow-output-heading"><span>確認を経て、成果物へ</span><h4 id="output-title-form">既存書式への入力案</h4><div class="output-stage-label"><span class="before-review"><span class="status-pending">確認前の状態</span></span><span class="after-review"><span class="status-confirmed">担当者が確認した後の例</span></span></div></div><div class="workflow-output-body"><div class="output-form"><div><span>給与収入 / 支給総額・月額</span><strong><span class="before-review">確認待ち</span><span class="after-review">315,000円</span></strong><small><button class="evidence-ref" type="button" data-reference="evidence-form-02" aria-controls="evidence-form-02" aria-label="根拠資料 02 を強調">02</button><button class="evidence-ref" type="button" data-reference="evidence-form-03" aria-controls="evidence-form-03" aria-label="根拠資料 03 を強調">03</button></small></div><div><span>現住所</span><strong class="unfilled-value">転居後の資料を確認</strong><small class="status-pending">未確定</small></div></div><p class="output-detail"><span class="before-review">数字を拾うだけでなく、手取り・総額・対象月を区別します。</span><span class="after-review">確認できた収入だけを反映。住所の空欄を推測で埋めません。</span></p></div></section>
+    </section><section class="workflow-panel" id="workflow-family" role="tabpanel" aria-labelledby="workflow-tab-family" data-review="before" hidden>
+      <header class="workflow-panel-header"><div><h3>前婚の記載が見つかったら、関係図の枝が増える。</h3><p>複数の戸籍をつなぎ、確認できた関係と未取得の資料を分ける構成例</p></div><div class="workflow-stage-control"><span>確認の前後を見る</span><div role="group" aria-label="担当者による確認の前後"><button type="button" data-review-stage="before" aria-pressed="true">確認前</button><button type="button" data-review-stage="after" aria-pressed="false">確認後の例</button></div></div></header>
+      <div class="workflow-lanes">
+        <section class="workflow-lane lane-sources" aria-labelledby="lane-family-sources"><h4 class="workflow-lane-title" id="lane-family-sources"><span>01</span>所内の資料</h4><div class="workflow-evidence"><article class="evidence-card " id="evidence-family-01"><div class="evidence-heading"><span class="evidence-number">01</span><strong>戸籍 A</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>人物</dt><dd>山田 一郎 / 1948年4月12日生</dd></div><div><dt>配偶者</dt><dd>山田 春子</dd></div><div><dt>子の記載</dt><dd>太郎・花子</dd></div></dl></div><div class="evidence-locator">戸籍 A / 身分事項・子の記載</div></article><article class="evidence-card " id="evidence-family-02"><div class="evidence-heading"><span class="evidence-number">02</span><strong>以前の戸籍 B</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>人物</dt><dd>山田 一郎 / 1948年4月12日生</dd></div><div><dt>前婚の記載</dt><dd>あり</dd></div><div><dt>子の記載</dt><dd>山田 二郎</dd></div></dl></div><div class="evidence-locator">戸籍 B / 前婚に関する記載</div></article><article class="evidence-card " id="evidence-family-03"><div class="evidence-heading"><span class="evidence-number">03</span><strong>二郎の続きの戸籍</strong></div><div class="evidence-body"><div class="before-review"><p class="missing-document">未取得</p><p>その後の身分事項と子の記載は、まだ確認できません。</p></div><div class="after-review"><dl class="evidence-fields"><div><dt>取得後の例</dt><dd>人物の同一性を確認</dd></div><div><dt>子の記載</dt><dd>山田 美咲</dd></div></dl></div></div><div class="evidence-locator">追加取得する戸籍 C</div></article></div></section>
+        <section class="workflow-lane lane-analysis" aria-labelledby="lane-family-analysis"><h4 class="workflow-lane-title" id="lane-family-analysis"><span>02</span>AIが根拠を並べて整理</h4><div class="workflow-table-scroll"><table class="workflow-table "><thead><tr><th scope="col">照合する項目</th><th scope="col">関係図に反映する内容</th></tr></thead><tbody><tr><td>人物の同一性</td><td>氏名・生年月日（1948年4月12日）が一致 <button class="evidence-ref" type="button" data-reference="evidence-family-01" aria-controls="evidence-family-01" aria-label="根拠資料 01 を強調">01</button><button class="evidence-ref" type="button" data-reference="evidence-family-02" aria-controls="evidence-family-02" aria-label="根拠資料 02 を強調">02</button></td></tr><tr><td>前婚の記載</td><td>太郎・花子とは別に、二郎の記載 <button class="evidence-ref" type="button" data-reference="evidence-family-02" aria-controls="evidence-family-02" aria-label="根拠資料 02 を強調">02</button></td></tr><tr><td>収集の不足</td><td><span class="conflict-value">二郎の続きの戸籍が未取得</span> <button class="evidence-ref" type="button" data-reference="evidence-family-03" aria-controls="evidence-family-03" aria-label="根拠資料 03 を強調">03</button></td></tr></tbody></table></div><div class="workflow-finding"><strong>一枚の戸籍だけでは、関係が閉じない</strong><p>現在の記載だけで図を完成させず、前婚の記載と追加で必要な戸籍を、関係図の枝として残します。</p></div><p class="reference-hint">青い資料番号から、対応する元資料を確認できます</p></section>
+        <section class="workflow-lane lane-review" aria-labelledby="lane-family-review"><h4 class="workflow-lane-title" id="lane-family-review"><span>03</span>担当者が判断・確認</h4><div class="review-question">関係をたどる資料が揃った？</div><div class="review-branch-lines" aria-hidden="true"><svg viewBox="0 0 100 32" preserveAspectRatio="none"><path d="M50 0V12M22 12H78M22 12V32M78 12V32"/></svg></div>
+    <div class="review-branches"><div class="review-path path-wait"><span>確認が足りない</span><strong>未収集の枝を残す</strong></div><div class="review-path path-ready"><span>根拠を確認できた</span><strong>根拠付きで図を更新</strong></div></div>
+    <div class="review-instruction"><span class="before-review">二郎の続きの戸籍を取得し、同一人物か、続柄に追加・変更がないかを確認します。</span><span class="after-review">この例では、戸籍Cから美咲の記載を確認。関係図を更新してから、担当者が相続関係を検討します。</span></div></section>
+      </div>
+      <div class="workflow-return"><svg viewBox="0 0 1000 28" preserveAspectRatio="none" aria-hidden="true"><path d="M970 0V18H24V0M18 8l6-8 6 8"/></svg><span>未取得の戸籍を図の上に残し、追加取得 → 同一性・続柄の確認を続ける</span></div>
+      <section class="workflow-output" aria-labelledby="output-title-family"><div class="workflow-output-heading"><span>確認を経て、成果物へ</span><h4 id="output-title-family">根拠と未確認箇所を残した関係図</h4><div class="output-stage-label"><span class="before-review"><span class="status-pending">確認前の状態</span></span><span class="after-review"><span class="status-confirmed">担当者が確認した後の例</span></span></div></div><div class="workflow-output-body"><div class="lineage-graph"><div class="lineage-root"><strong>山田 一郎</strong><span>複数の戸籍で同一人物を照合 <button class="evidence-ref" type="button" data-reference="evidence-family-01" aria-controls="evidence-family-01" aria-label="根拠資料 01 を強調">01</button><button class="evidence-ref" type="button" data-reference="evidence-family-02" aria-controls="evidence-family-02" aria-label="根拠資料 02 を強調">02</button></span></div><div class="lineage-branches"><div class="lineage-branch"><div class="lineage-branch-title">前婚の記載 <button class="evidence-ref" type="button" data-reference="evidence-family-02" aria-controls="evidence-family-02" aria-label="根拠資料 02 を強調">02</button></div><div class="lineage-person"><strong>山田 二郎</strong><span>子としての記載</span></div><div class="lineage-person lineage-descendant"><span class="before-review"><strong class="unfilled-value">続きの戸籍が未確認</strong><span>資料の収集をここから続ける</span></span><span class="after-review"><strong>山田 美咲</strong><span>戸籍Cで子の記載を確認 <button class="evidence-ref" type="button" data-reference="evidence-family-03" aria-controls="evidence-family-03" aria-label="根拠資料 03 を強調">03</button></span></span></div></div><div class="lineage-branch"><div class="lineage-branch-title">春子との関係 <button class="evidence-ref" type="button" data-reference="evidence-family-01" aria-controls="evidence-family-01" aria-label="根拠資料 01 を強調">01</button></div><div class="lineage-siblings"><div class="lineage-person"><strong>山田 太郎</strong><span>子としての記載</span></div><div class="lineage-person"><strong>山田 花子</strong><span>子としての記載</span></div></div></div></div></div><p class="output-detail">関係図は記載を整理した下書きです。相続人の範囲や法的な評価は、担当者が確認して確定します。</p></div></section>
+    </section><section class="workflow-panel" id="workflow-case" role="tabpanel" aria-labelledby="workflow-tab-case" data-review="before" hidden>
+      <header class="workflow-panel-header"><div><h3>300万円と280万円。どちらも根拠を確かめてから直す。</h3><p>実際のPoCにある金額・期限の不一致を使い、差戻しから承認までを示す例</p></div><div class="workflow-stage-control"><span>確認の前後を見る</span><div role="group" aria-label="担当者による確認の前後"><button type="button" data-review-stage="before" aria-pressed="true">確認前</button><button type="button" data-review-stage="after" aria-pressed="false">確認後の例</button></div></div></header>
+      <div class="workflow-lanes">
+        <section class="workflow-lane lane-sources" aria-labelledby="lane-case-sources"><h4 class="workflow-lane-title" id="lane-case-sources"><span>01</span>所内の資料</h4><div class="workflow-evidence"><article class="evidence-card " id="evidence-case-01"><div class="evidence-heading"><span class="evidence-number">01</span><strong>提出書面案</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>支払額</dt><dd>3,000,000円</dd></div><div><dt>返金期限</dt><dd>7月20日</dd></div></dl></div><div class="evidence-locator">PoCのサンプル資料 / 事実関係</div></article><article class="evidence-card " id="evidence-case-02"><div class="evidence-heading"><span class="evidence-number">02</span><strong>銀行明細の確認用抜粋</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>振込額</dt><dd>2,800,000円</dd></div><div><dt>原本照合</dt><dd>未実施</dd></div></dl></div><div class="evidence-locator">PoCのサンプル資料 / 取引明細</div></article><article class="evidence-card " id="evidence-case-03"><div class="evidence-heading"><span class="evidence-number">03</span><strong>初回面談記録</strong></div><div class="evidence-body"><dl class="evidence-fields"><div><dt>返金期限</dt><dd>7月31日との認識</dd></div><div><dt>次の対応</dt><dd>振込原本・連絡履歴を確認</dd></div></dl></div><div class="evidence-locator">PoCのサンプル資料 / 面談内容</div></article></div></section>
+        <section class="workflow-lane lane-analysis" aria-labelledby="lane-case-analysis"><h4 class="workflow-lane-title" id="lane-case-analysis"><span>02</span>AIが根拠を並べて整理</h4><div class="workflow-table-scroll"><table class="workflow-table "><thead><tr><th scope="col">確認する項目</th><th scope="col">書面案</th><th scope="col">照合する資料</th></tr></thead><tbody><tr><td>支払額</td><td>300万円 <button class="evidence-ref" type="button" data-reference="evidence-case-01" aria-controls="evidence-case-01" aria-label="根拠資料 01 を強調">01</button></td><td><span class="conflict-value">280万円</span> <button class="evidence-ref" type="button" data-reference="evidence-case-02" aria-controls="evidence-case-02" aria-label="根拠資料 02 を強調">02</button></td></tr><tr><td>返金期限</td><td>7月20日 <button class="evidence-ref" type="button" data-reference="evidence-case-01" aria-controls="evidence-case-01" aria-label="根拠資料 01 を強調">01</button></td><td><span class="conflict-value">7月31日</span> <button class="evidence-ref" type="button" data-reference="evidence-case-03" aria-controls="evidence-case-03" aria-label="根拠資料 03 を強調">03</button></td></tr></tbody></table></div><div class="workflow-finding"><strong>2つの不一致候補。ただし、抜粋も認識も未確定</strong><p>280万円の抜粋も、7月31日という認識も、そのまま正解とは扱いません。振込原本と合意内容の根拠を確認します。</p></div><p class="reference-hint">青い資料番号から、対応する元資料を確認できます</p></section>
+        <section class="workflow-lane lane-review" aria-labelledby="lane-case-review"><h4 class="workflow-lane-title" id="lane-case-review"><span>03</span>担当者が判断・確認</h4><div class="review-question">原本と合意内容で確かめた？</div><div class="review-branch-lines" aria-hidden="true"><svg viewBox="0 0 100 32" preserveAspectRatio="none"><path d="M50 0V12M22 12H78M22 12V32M78 12V32"/></svg></div>
+    <div class="review-branches"><div class="review-path path-wait"><span>確認が足りない</span><strong>担当者へ差戻し</strong></div><div class="review-path path-ready"><span>根拠を確認できた</span><strong>修正・再確認・承認</strong></div></div>
+    <div class="review-instruction"><span class="before-review">確認担当が原本・連絡履歴を依頼。未確定の金額や期限は、書面の確認事項として残します。</span><span class="after-review">確認後の例では、原本と連絡履歴に沿って修正。確認責任者が書類案を承認します。</span></div></section>
+      </div>
+      <div class="workflow-return"><svg viewBox="0 0 1000 28" preserveAspectRatio="none" aria-hidden="true"><path d="M970 0V18H24V0M18 8l6-8 6 8"/></svg><span>根拠が足りなければ、担当者への依頼・期限の設定・資料の追加確認へ</span></div>
+      <section class="workflow-output" aria-labelledby="output-title-case"><div class="workflow-output-heading"><span>確認を経て、成果物へ</span><h4 id="output-title-case">書類の版と、人が確認した経緯</h4><div class="output-stage-label"><span class="before-review"><span class="status-pending">確認前の状態</span></span><span class="after-review"><span class="status-confirmed">担当者が確認した後の例</span></span></div></div><div class="workflow-output-body"><div class="case-review-result"><div class="version-artifact"><span><span class="before-review">書類案 v1 / 確認待ち</span><span class="after-review">書類案 v2 / 確認後の例</span></span><strong>調査・確認報告書</strong><dl><div><dt>支払額</dt><dd><span class="before-review">300万円 <small>原本確認が必要</small></span><span class="after-review">280万円 <small>原本で確認した例</small></span></dd></div><div><dt>返金期限</dt><dd><span class="before-review">7月20日 <small>合意内容の確認が必要</small></span><span class="after-review">7月31日 <small>連絡履歴で確認した例</small></span></dd></div></dl></div><ol class="review-audit"><li><span>事務担当</span><strong>原本と連絡履歴を収集</strong></li><li><span>作成担当</span><strong>書類案を修正・保存</strong></li><li><span>確認責任者</span><strong>根拠を見て再確認・承認</strong></li></ol></div><p class="output-detail">不一致の検出は実際のPoCと同じサンプルです。確認後の値・履歴は、流れを説明する例です。</p></div></section>
+    </section></div>
+      <div class="workflow-footnote"><p>氏名・金額・資料は説明用の例です。業務ごとの処理は、書式・資料・確認手順に合わせて構築します。</p><a href="demo/" target="_blank" rel="noopener">書面の照合をデモで試す <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    <section class="deployment" id="deployment">
+      <div class="wrap deployment-layout">
+        <div>
+          <div class="eyebrow">導入の進め方</div>
+          <h2>業務を絞って、<br>所内に合う形から。</h2>
+          <p class="deployment-copy">対象業務、資料、所内ルールを確認し、<strong>事務所内で運用できる構成</strong>を設計します。</p>
+        </div>
+        <div class="deployment-steps" aria-label="導入の進め方">
+          <div class="deployment-head">導入の進め方</div>
+          <div class="deployment-step"><div class="deployment-step-label">01</div><div><h3>業務と資料を整理</h3><p>対象業務と資料の形式を確認</p></div></div>
+          <div class="deployment-step"><div class="deployment-step-label">02</div><div><h3>所内の構成を設計</h3><p>モデル、権限、通信、保管先を決定</p></div></div>
+          <div class="deployment-step"><div class="deployment-step-label">03</div><div><h3>運用を開始</h3><p>確認手順と既存書式に合わせて導入</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="faq">
+      <div class="faq-grid">
+        <div><div class="section-label">よくある質問</div><h2><span class="nb">導入を考えるときの、</span><span class="nb">よくある質問。</span></h2></div>
+        <div class="faq-list">
+          <details class="faq"><summary>クラウドAIと何が違いますか？</summary><p class="faq-answer">クラウドAIは提供者側の環境で、ローカルAIは事務所が管理する環境で処理します。</p></details>
+          <details class="faq"><summary>依頼者の情報を外部へ送らずに利用できますか？</summary><p class="faq-answer">案件資料を外部AIへ送らない構成を設計できます。更新、認証、バックアップの通信と保管先は導入時に確認します。</p></details>
+          <details class="faq"><summary>AIが作った書類を、そのまま提出できますか？</summary><p class="faq-answer">AIの出力は下書きです。<strong>内容の確認、法的判断、提出の承認は担当者が行います。</strong></p></details>
+          <details class="faq"><summary>今あるExcelやWordの書式は使えますか？</summary><p class="faq-answer">既存のひな形や入力ルールを確認し、活用する方法を提案します。</p></details>
+          <details class="faq"><summary>導入費用は決まっていますか？</summary><p class="faq-answer">業務、書式、サーバー構成を確認したうえでお見積りします。</p></details>
+          <details class="faq"><summary>どの業務から相談できますか？</summary><p class="faq-answer">書類作成、資料整理、提出前の照合などからご相談いただけます。</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="consult wrap" id="consultation">
+      <div class="consult-panel">
+        <div class="consult-copy">
+          <div class="eyebrow">ご相談はこちら</div>
+          <h2><span class="nb">まずは、</span><span class="nb">AIに入力する</span><span class="nb">情報の棚卸しから。</span></h2>
+          <p>AI利用ルールと対象業務を伺い、事務所内で運用できる構成をご提案します。</p>
+        </div>
+        <div class="consult-action"><a class="button" href="demo/" target="_blank" rel="noopener">まずはデモを体験 <span class="arrow" aria-hidden="true">↗</span></a></div>
+      </div>
+    </section>
+  </main>
+
+    <footer class="footer">
+    <div class="wrap footer-inner">
+      <a class="footer-brand" href="#top"><span class="brand-mark" aria-hidden="true"></span><span>JurisLocal</span><span class="brand-by">by Alteor</span></a>
+      <span class="footer-note">法律事務所向け ローカルAI案件ワークスペース</span>
+      <span>© 2026 Alteor</span>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const toggle = document.querySelector(".menu-toggle");
+      const links = document.querySelector(".nav-links");
+      toggle.addEventListener("click", () => {
+        const open = toggle.getAttribute("aria-expanded") !== "true";
+        toggle.setAttribute("aria-expanded", String(open));
+        toggle.setAttribute("aria-label", open ? "メニューを閉じる" : "メニューを開く");
+        links.classList.toggle("is-open", open);
+      });
+      links.addEventListener("click", event => {
+        if (event.target.closest("a")) {
+          links.classList.remove("is-open");
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.setAttribute("aria-label", "メニューを開く");
+        }
+      });
+
+      const screenTabs = [...document.querySelectorAll(".screen-tab")];
+      const pocScreen = document.querySelector("#poc-screen");
+      const screenCaption = document.querySelector("#screen-caption");
+      const pocPanel = document.querySelector("#poc-panel");
+      function selectScreen(tab, focus = false) {
+        screenTabs.forEach(item => {
+          const selected = item === tab;
+          item.setAttribute("aria-selected", String(selected));
+          item.tabIndex = selected ? 0 : -1;
+        });
+        pocScreen.src = tab.dataset.src;
+        pocScreen.alt = tab.dataset.alt;
+        pocPanel.setAttribute("aria-labelledby", tab.id);
+        const [label, ...rest] = tab.dataset.caption.split("：");
+        const strong = document.createElement("strong");
+        strong.textContent = label + "：";
+        screenCaption.replaceChildren(strong, document.createTextNode(rest.join("：")));
+        if (focus) tab.focus();
+      }
+      screenTabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => selectScreen(tab));
+        tab.addEventListener("keydown", event => {
+          if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            event.preventDefault();
+            const step = event.key === "ArrowRight" ? 1 : -1;
+            selectScreen(screenTabs[(index + step + screenTabs.length) % screenTabs.length], true);
+          }
+        });
+      });
+
+
+    })();
+  
+  </script>
+  <script>
+    /* スクロールに合わせた表示 */
+    (() => {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+      const targets = document.querySelectorAll('.signal, .section-head, .risk-copy, .risk-card, .demo-layout, .key-card, .principle, .flow, .workflow-board, .deployment-layout > *, .faq-grid > *, .consult-panel');
+      document.documentElement.classList.add('reveal-on');
+      const io = new IntersectionObserver(entries => entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-in');
+        io.unobserve(entry.target);
+      }), { rootMargin: '0px 0px -8% 0px' });
+      targets.forEach(el => { el.classList.add('rv'); io.observe(el); });
+    })();
+
+    /* ヒーロー：ガラスの箱をゆっくり揺らし、資料を箱の中で巡らせる */
+    (() => {
+      const stage = document.querySelector('.vault-stage');
+      const vault = stage && stage.querySelector('.vault');
+      if (!vault || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const docs = [...vault.querySelectorAll('.vault-doc')];
+      let px = 0, py = 0, tx = 0, ty = 0, raf = 0, running = false;
+
+      window.addEventListener('pointermove', event => {
+        if (event.pointerType && event.pointerType !== 'mouse') return;
+        const rect = stage.getBoundingClientRect();
+        tx = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width - .5) * 2));
+        ty = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height - .5) * 2));
+      }, { passive: true });
+
+      function frame(now) {
+        const t = now / 1000;
+        px += (tx - px) * .05; py += (ty - py) * .05;
+        const ry = -34 + Math.sin(t * .3) * 16 + px * 12;
+        const rx = -19 + Math.sin(t * .23 + 1) * 3 - py * 6;
+        vault.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+        vault.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+        const radius = vault.offsetWidth * .31;
+        docs.forEach((doc, i) => {
+          const a = t * .55 + i * (Math.PI * 2 / docs.length);
+          doc.style.setProperty('--x', (Math.cos(a) * radius).toFixed(1) + 'px');
+          doc.style.setProperty('--z', (Math.sin(a) * radius).toFixed(1) + 'px');
+          doc.style.setProperty('--y', (Math.sin(a) * vault.offsetWidth * .19 + Math.sin(t * .9 + i * 2.1) * 6).toFixed(1) + 'px');
+        });
+        if (running) raf = requestAnimationFrame(frame);
+      }
+      const start = () => { if (!running) { running = true; raf = requestAnimationFrame(frame); } };
+      const stop = () => { running = false; cancelAnimationFrame(raf); };
+      new IntersectionObserver(entries => (entries[0].isIntersecting ? start() : stop())).observe(stage);
+      document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+    })();
+
+    /* 動きを減らす設定のときは、図のアニメーションも止める */
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('svg').forEach(svg => { if (svg.pauseAnimations) svg.pauseAnimations(); });
+    }
+  </script>
+</body>
+</html>
